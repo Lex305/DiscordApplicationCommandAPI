@@ -90,87 +90,91 @@ public class Interaction {
 		);
 	}
 	
-	private long getOptionLong(String name) {
+	private long getArgumentLong(String name) {
 		return Long.parseLong((String) optionValues.get(name));
 	}
 	
-	private long getOptionLong(String name, long def) {
+	private long getArgumentLong(String name, long def) {
 		return Long.parseLong((String) optionValues.getOrDefault(name, String.valueOf(def)));
 	}
 	
-	public int getOptionInt(String name) {
+	public int getArgumentInt(String name) {
 		return (int) optionValues.get(name);
 	}
 	
-	public String getOptionString(String name) {
+	public String getArgumentString(String name) {
 		return (String) optionValues.get(name);
 	}
 	
-	public boolean getOptionBoolean(String name) {
+	public boolean getArgumentBoolean(String name) {
 		return (boolean) optionValues.get(name);
 	}
 	
-	public User getOptionUser(String name) {
-		return jda.getUserById((long) optionValues.get(name));
+	public User getArgumentUser(String name) {
+		return jda.getUserById((String) optionValues.get(name));
+	}
+
+	public RestAction<User> getArgumentUserRetrieved(String name) {
+		return jda.retrieveUserById((String) optionValues.get(name));
 	}
 	
-	public long getOptionUserLong(String name) {
-		return (long) getOptionLong(name);
+	public long getArgumentUserLong(String name) {
+		return (long) getArgumentLong(name);
 	}
 	
-	public GuildChannel getOptionChannel(String name) {
+	public GuildChannel getArgumentChannel(String name) {
 		return jda.getGuildChannelById((long) optionValues.get(name));
 	}
 	
-	public long getOptionChannelLong(String name) {
-		return (long) getOptionLong(name);
+	public long getArgumentChannelLong(String name) {
+		return (long) getArgumentLong(name);
 	}
 	
-	public Role getOptionRole(String name) {
-		return jda.getRoleById((long) optionValues.get(name));
+	public Role getArgumentRole(String name) {
+		return jda.getRoleById((String) optionValues.get(name));
 	}
 	
-	public long getOptionRoleLong(String name) {
-		return (long) getOptionLong(name);
+	public long getArgumentRoleLong(String name) {
+		return (long) getArgumentLong(name);
 	}
 	
-	public int getOptionInt(String name, int def) {
+	public int getArgumentInt(String name, int def) {
 		return (int) optionValues.getOrDefault(name, def);
 	}
 	
-	public String getOptionString(String name, String def) {
+	public String getArgumentString(String name, String def) {
 		return (String) optionValues.getOrDefault(name, def);
 	}
 	
-	public boolean getOptionBoolean(String name, boolean def) {
+	public boolean getArgumentBoolean(String name, boolean def) {
 		return (boolean) optionValues.getOrDefault(name, def);
 	}
 	
-	public User getOptionUser(String name, User def) {
-		return jda.getUserById((long) optionValues.getOrDefault(name, def));
+	public User getArgumentUser(String name, User def) {
+		return jda.getUserById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
 	}
 	
-	public long getOptionUserLong(String name, long def) {
-		return getOptionLong(name, def);
+	public long getArgumentUserLong(String name, long def) {
+		return getArgumentLong(name, def);
 	}
 	
-	public GuildChannel getOptionChannel(String name, GuildChannel def) {
-		return jda.getGuildChannelById((long) optionValues.getOrDefault(name, def));
+	public GuildChannel getArgumentChannel(String name, GuildChannel def) {
+		return jda.getGuildChannelById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
 	}
 	
-	public long getOptionChannelLong(String name, long def) {
-		return getOptionLong(name, def);
+	public long getArgumentChannelLong(String name, long def) {
+		return getArgumentLong(name, def);
 	}
 	
-	public Role getOptionRole(String name, Role def) {
-		return jda.getRoleById((long) optionValues.getOrDefault(name, def));
+	public Role getArgumentRole(String name, Role def) {
+		return jda.getRoleById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
 	}
 	
-	public long getOptionRoleLong(String name, long def) {
-		return getOptionLong(name, def);
+	public long getArgumentRoleLong(String name, long def) {
+		return getArgumentLong(name, def);
 	}
 	
-	public Object getOption(String name, Object def) {
+	public Object getArgument(String name, Object def) {
 		return optionValues.getOrDefault(name, def);
 	}
 	

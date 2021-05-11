@@ -43,7 +43,8 @@ public class ApplicationCommandAPI {
 	}
 	
 	public RestAction<ApplicationCommand> registerGuildCommand(long guildId, ApplicationCommand command) {
-		ApplicationCommandNode node = command.build();
+		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
+		command.build(node);
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
@@ -60,7 +61,8 @@ public class ApplicationCommandAPI {
 	}
 	
 	public RestAction<ApplicationCommand> registerGlobalCommand(ApplicationCommand command) {
-		ApplicationCommandNode node = command.build();
+		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
+		command.build(node);
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
@@ -171,9 +173,15 @@ public class ApplicationCommandAPI {
 	}
 	
 	private ApplicationCommand commandFromDataObject(DataObject commandData) {
+		String name = commandData.getString("name");
 		ApplicationCommand command = new ApplicationCommand() {
 			@Override
-			public ApplicationCommandNode build() { return node; }
+			public void build(ApplicationRootCommandNode root) { }
+
+			@Override
+			public String getName() {
+				return name;
+			}
 		};
 		command.id = commandData.getLong("id");
 		command.applicationId = commandData.getLong("application_id");

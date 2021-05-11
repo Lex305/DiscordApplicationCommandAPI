@@ -49,8 +49,9 @@ public class InteractionCreateHandler extends SocketHandler {
 				node = n;
 		if(node == null)
 			return;
-		if(data.hasKey("value"))
+		if(data.hasKey("value")) {
 			optionValues.put(node.getName(), data.get("value"));
+		}
 		if(data.hasKey("options")) {
 			DataArray dataOptions = data.getArray("options");
 			for(int i = 0; i < dataOptions.length(); i++) {

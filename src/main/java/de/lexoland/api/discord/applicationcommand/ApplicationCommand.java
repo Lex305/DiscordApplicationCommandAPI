@@ -6,21 +6,15 @@ import java.util.function.Consumer;
 
 public abstract class ApplicationCommand {
 	
-	public static final int SUB_COMMAND = 1;
-	public static final int SUB_COMMAND_GROUP = 2;
-	public static final int STRING = 3;
-	public static final int INTEGER = 4;
-	public static final int BOOLEAN = 5;
-	public static final int USER = 6;
-	public static final int CHANNEL = 7;
-	public static final int ROLE = 8;
-	public static final int MENTIONABLE = 9;
+	private static final int SUB_COMMAND = 1;
+	private static final int SUB_COMMAND_GROUP = 2;
 	
 	protected long id;
 	protected long applicationId;
 	protected ApplicationCommandNode node;
 	
-	public abstract ApplicationCommandNode build();
+	public abstract void build(ApplicationRootCommandNode root);
+	public abstract String getName();
 	
 	protected ApplicationCommandNode option(String name, int type) {
 		return new ApplicationCommandNode(name, type);
@@ -44,6 +38,18 @@ public abstract class ApplicationCommand {
 	
 	public static ApplicationCommandChoice choice(String name, int value) {
 		return new ApplicationCommandChoice(name, value);
+	}
+
+	public static ApplicationSubCommandNode subCommand(String name) {
+		return new ApplicationSubCommandNode(name);
+	}
+
+	public static ApplicationSubCommandGroupNode subCommandGroup(String name) {
+		return new ApplicationSubCommandGroupNode(name);
+	}
+
+	public static ApplicationArgumentCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
+		return new ApplicationArgumentCommandNode(name, type);
 	}
 	
 	public static class ApplicationCommandNode {
@@ -136,8 +142,8 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationRootCommandNode argument(ApplicationArgumentCommandNode argument) {
-			options.add(argument);
+		public ApplicationRootCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, choices));
 			return this;
 		}
 
@@ -153,8 +159,8 @@ public abstract class ApplicationCommand {
 			super(name, SUB_COMMAND);
 		}
 
-		public ApplicationSubCommandNode argument(ApplicationArgumentCommandNode argument) {
-			options.add(argument);
+		public ApplicationSubCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, choices));
 			return this;
 		}
 
@@ -180,7 +186,7 @@ public abstract class ApplicationCommand {
 
 		public ApplicationArgumentCommandNode(String name, int type, ApplicationCommandChoice... choices) {
 			super(name, type);
-			if(type != STRING && type != INTEGER && choices.length >= 1)
+			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)
 				throw new IllegalArgumentException("Choices are only available for strings and integers");
 			this.choices = choices;
 		}
