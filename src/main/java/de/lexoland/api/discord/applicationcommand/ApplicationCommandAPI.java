@@ -25,8 +25,8 @@ import okhttp3.RequestBody;
 
 public class ApplicationCommandAPI {
 	
-	private JDAImpl jda;
-	private HashMap<Long, ApplicationCommand> commands = new HashMap<>();
+	private final JDAImpl jda;
+	private final HashMap<Long, ApplicationCommand> commands = new HashMap<>();
 	
 	public ApplicationCommandAPI(JDA jda) {
 		this.jda = (JDAImpl) jda;
@@ -38,42 +38,46 @@ public class ApplicationCommandAPI {
 		handlers.put("INTERACTION_CREATE", new InteractionCreateHandler(jda, this));
 	}
 	
-	public void registerGuildCommand(Guild guild, ApplicationCommand command) {
-		registerGuildCommand(guild.getIdLong(), command);
+	public RestAction<ApplicationCommand> registerGuildCommand(Guild guild, ApplicationCommand command) {
+		return registerGuildCommand(guild.getIdLong(), command);
 	}
 	
-	public void registerGuildCommand(long guildId, ApplicationCommand command) {
+	public RestAction<ApplicationCommand> registerGuildCommand(long guildId, ApplicationCommand command) {
 		ApplicationCommandNode node = command.build();
-		requestPost(
-			Route.post("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
-			build(node).toJson(),
-			response -> {
-				DataObject obj = response.optObject().get();
-				command.id = obj.getLong("id");
-				command.applicationId = obj.getLong("application_id");
-				command.node = node;
-				commands.put(command.id, command);
-			}
+		return new RestActionImpl<>(
+				jda,
+				Route.post("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
+				RequestBody.create(MediaType.get("application/json"), build(node).toJson()),
+				(response, request) -> {
+					DataObject obj = response.optObject().get();
+					command.id = obj.getLong("id");
+					command.applicationId = obj.getLong("application_id");
+					command.node = node;
+					commands.put(command.id, command);
+					return command;
+				}
 		);
 	}
 	
-	public void registerGlobalCommand(ApplicationCommand command) {
+	public RestAction<ApplicationCommand> registerGlobalCommand(ApplicationCommand command) {
 		ApplicationCommandNode node = command.build();
-		requestPost(
-			Route.post("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
-			build(node).toJson(),
-			response -> {
-				DataObject obj = response.optObject().get();
-				command.id = obj.getLong("id");
-				command.applicationId = obj.getLong("application_id");
-				command.node = node;
-				commands.put(command.id, command);
-			}
+		return new RestActionImpl<>(
+				jda,
+				Route.post("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
+				RequestBody.create(MediaType.get("application/json"), build(node).toJson()),
+				(response, request) -> {
+					DataObject obj = response.optObject().get();
+					command.id = obj.getLong("id");
+					command.applicationId = obj.getLong("application_id");
+					command.node = node;
+					commands.put(command.id, command);
+					return command;
+				}
 		);
 	}
 	
 	public RestAction<ApplicationCommand> getGlobalCommand(String name) {
-		RestActionImpl<ApplicationCommand> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
 			(response, request) -> {
@@ -86,45 +90,41 @@ public class ApplicationCommandAPI {
 				return null;
 			}
 		);
-		return restAction;
 	}
 	
 	public RestAction<ApplicationCommand> getGlobalCommand(long id) {
-		RestActionImpl<ApplicationCommand> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(id)),
 			(response, request) -> commandFromDataObject(response.getObject())
 		);
-		return restAction;
 	}
 	
 	public RestAction<Void> deleteGlobalCommand(long id) {
-		RestActionImpl<Void> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.delete("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(id))
 		);
-		return restAction;
 	}
 	
 	public RestAction<List<ApplicationCommand>> getGlobalCommands() {
-		RestActionImpl<List<ApplicationCommand>> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
 			(response, request) -> {
-				List<ApplicationCommand> commands = new ArrayList<>();
+				List<ApplicationCommand> commands1 = new ArrayList<>();
 				DataArray array = response.getArray();
 				for(int i = 0; i < array.length(); i++) {
 					DataObject command = array.getObject(i);
-					commands.add(commandFromDataObject(command));
+					commands1.add(commandFromDataObject(command));
 				}
-				return commands;
+				return commands1;
 			}
 		);
-		return restAction;
 	}
 	
 	public RestAction<ApplicationCommand> getGuildCommand(long guildId, String name) {
-		RestActionImpl<ApplicationCommand> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
 			(response, request) -> {
@@ -137,41 +137,37 @@ public class ApplicationCommandAPI {
 				return null;
 			}
 		);
-		return restAction;
 	}
 	
 	public RestAction<ApplicationCommand> getGuildCommand(long guildId, long id) {
-		RestActionImpl<ApplicationCommand> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(id)),
 			(response, request) -> commandFromDataObject(response.getObject())
 		);
-		return restAction;
 	}
 	
 	public RestAction<Void> deleteGuildCommand(long guildId, long id) {
-		RestActionImpl<Void> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.delete("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(id))
 		);
-		return restAction;
 	}
 	
 	public RestAction<List<ApplicationCommand>> getGuildCommands(long guildId) {
-		RestActionImpl<List<ApplicationCommand>> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
 			(response, request) -> {
-				List<ApplicationCommand> commands = new ArrayList<>();
+				List<ApplicationCommand> commands1 = new ArrayList<>();
 				DataArray array = response.getArray();
 				for(int i = 0; i < array.length(); i++) {
 					DataObject command = array.getObject(i);
-					commands.add(commandFromDataObject(command));
+					commands1.add(commandFromDataObject(command));
 				}
-				return commands;
+				return commands1;
 			}
 		);
-		return restAction;
 	}
 	
 	private ApplicationCommand commandFromDataObject(DataObject commandData) {
@@ -250,19 +246,10 @@ public class ApplicationCommandAPI {
 		return obj;
 	}
 	
-	protected void requestPost(CompiledRoute route, byte[] content, Consumer<Response> onResponse) {
-		RestActionImpl<?> restAction = new RestActionImpl<>(jda, route, RequestBody.create(MediaType.get("application/json"), content), (response, request) -> {
-			onResponse.accept(response);
-			return null;
-		});
-		restAction.queue();
-	}
-	
 	protected RestActionImpl<Response> requestGet(CompiledRoute route) {
-		RestActionImpl<Response> restAction = new RestActionImpl<>(jda, route, (response, request) -> {
+		return new RestActionImpl<>(jda, route, (response, request) -> {
 			return response;
 		});
-		return restAction;
 	}
 	
 	public JDA getJDA() {

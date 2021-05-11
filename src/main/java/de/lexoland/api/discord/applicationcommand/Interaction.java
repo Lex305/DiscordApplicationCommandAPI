@@ -71,25 +71,23 @@ public class Interaction {
 			obj.put("data", data);
 			
 		}
-		RestActionImpl<Void> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.post("interactions/{}/{}/callback").compile(String.valueOf(id), token),
 			RequestBody.create(MediaType.get("application/json"), obj.toJson()),
 			(response, request) -> null
 		);
-		return restAction;
 	}
 	
 	public RestAction<Void> sendFollowUpMessage(String content) {
 		DataObject obj = DataObject.empty();
 		obj.put("content", content);
-		RestActionImpl<Void> restAction = new RestActionImpl<>(
+		return new RestActionImpl<>(
 			jda,
 			Route.post("webhooks/{}/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), token),
 			RequestBody.create(MediaType.get("application/json"), obj.toJson()),
 			(response, request) -> null
 		);
-		return restAction;
 	}
 	
 	private long getOptionLong(String name) {
@@ -97,7 +95,7 @@ public class Interaction {
 	}
 	
 	private long getOptionLong(String name, long def) {
-		return (long) optionValues.getOrDefault(name, def);
+		return Long.parseLong((String) optionValues.getOrDefault(name, String.valueOf(def)));
 	}
 	
 	public int getOptionInt(String name) {

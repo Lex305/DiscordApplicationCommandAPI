@@ -14,6 +14,7 @@ public abstract class ApplicationCommand {
 	public static final int USER = 6;
 	public static final int CHANNEL = 7;
 	public static final int ROLE = 8;
+	public static final int MENTIONABLE = 9;
 	
 	protected long id;
 	protected long applicationId;
@@ -53,13 +54,13 @@ public abstract class ApplicationCommand {
 		protected ApplicationCommandChoice[] choices = new ApplicationCommandChoice[0];
 		protected Consumer<Interaction> execute;
 		protected List<ApplicationCommandNode> options = new ArrayList<>();
-		
-		public ApplicationCommandNode(String name, int type) {
+
+		protected ApplicationCommandNode(String name, int type) {
 			this.name = name.toLowerCase();
 			this.type = type;
 		}
 		
-		public ApplicationCommandNode(String name) {
+		protected ApplicationCommandNode(String name) {
 			this.name = name.toLowerCase();
 			this.type = 0;
 		}
@@ -79,11 +80,11 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationCommandNode choices(ApplicationCommandChoice... choices) {
+		/*public ApplicationCommandNode choices(ApplicationCommandChoice... choices) {
 			this.choices = choices;
 			return this;
 		}
-		
+
 		public ApplicationCommandNode executes(Consumer<Interaction> execute) {
 			this.execute = execute;
 			return this;
@@ -92,7 +93,7 @@ public abstract class ApplicationCommand {
 		public ApplicationCommandNode then(ApplicationCommandNode option) {
 			options.add(option);
 			return this;
-		}
+		}*/
 		
 		public ApplicationCommandChoice[] getChoices() {
 			return choices;
@@ -118,7 +119,73 @@ public abstract class ApplicationCommand {
 			return type;
 		}
 	}
-	
+
+	public static class ApplicationRootCommandNode extends ApplicationCommandNode {
+
+		public ApplicationRootCommandNode(String name) {
+			super(name, 0);
+		}
+
+		public ApplicationRootCommandNode then(ApplicationSubCommandNode node) {
+			options.add(node);
+			return this;
+		}
+
+		public ApplicationRootCommandNode then(ApplicationSubCommandGroupNode node) {
+			options.add(node);
+			return this;
+		}
+
+		public ApplicationRootCommandNode argument(ApplicationArgumentCommandNode argument) {
+			options.add(argument);
+			return this;
+		}
+
+		public ApplicationRootCommandNode executes(Consumer<Interaction> execute) {
+			this.execute = execute;
+			return this;
+		}
+	}
+
+	public static class ApplicationSubCommandNode extends ApplicationCommandNode {
+
+		public ApplicationSubCommandNode(String name) {
+			super(name, SUB_COMMAND);
+		}
+
+		public ApplicationSubCommandNode argument(ApplicationArgumentCommandNode argument) {
+			options.add(argument);
+			return this;
+		}
+
+		public ApplicationSubCommandNode executes(Consumer<Interaction> execute) {
+			this.execute = execute;
+			return this;
+		}
+
+	}
+	public static class ApplicationSubCommandGroupNode extends ApplicationCommandNode {
+
+		public ApplicationSubCommandGroupNode(String name) {
+			super(name, SUB_COMMAND_GROUP);
+		}
+
+		public ApplicationSubCommandGroupNode then(ApplicationSubCommandNode option) {
+			options.add(option);
+			return this;
+		}
+	}
+
+	public static class ApplicationArgumentCommandNode extends ApplicationCommandNode {
+
+		public ApplicationArgumentCommandNode(String name, int type, ApplicationCommandChoice... choices) {
+			super(name, type);
+			if(type != STRING && type != INTEGER && choices.length >= 1)
+				throw new IllegalArgumentException("Choices are only available for strings and integers");
+			this.choices = choices;
+		}
+	}
+
 	public static class ApplicationCommandChoice {
 		
 		private final String name;
