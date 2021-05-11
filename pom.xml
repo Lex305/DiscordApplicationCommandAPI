@@ -1,0 +1,35 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.lexoland</groupId>
+  <artifactId>application_command</artifactId>
+  <version>1.0.0</version>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>8</source>
+					<target>8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<name>Discord Application Command API</name>
+  
+  <repositories>
+	<repository>
+		<id>dv8tion</id>
+		<name>m2-dv8tion</name>
+		<url>https://m2.dv8tion.net/releases</url>
+	</repository>
+  </repositories>
+  
+  <dependencies>
+  	<dependency>
+    	<groupId>net.dv8tion</groupId>
+    	<artifactId>JDA</artifactId>
+    	<version>4.2.1_262</version>
+	</dependency>
+  </dependencies>
+</project>
