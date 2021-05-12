@@ -205,6 +205,7 @@ public abstract class ApplicationCommand {
 			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)
 				throw new IllegalArgumentException("Choices are only available for strings and integers");
 			this.choices = choices;
+			this.description = description;
 		}
 	}
 
