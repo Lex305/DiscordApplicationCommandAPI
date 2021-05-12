@@ -1,18 +1,13 @@
 package de.lexoland.api.discord.applicationcommand;
 
-public enum ArgumentType {
+public enum PermissionType {
 
-    STRING(3),
-    INTEGER(4),
-    BOOLEAN(5),
-    USER(6),
-    CHANNEL(7),
-    ROLE(8),
-    MENTIONABLE(9);
+    ROLE(1),
+    USER(2);
 
     private final int value;
 
-    ArgumentType(int value) {
+    PermissionType(int value) {
         this.value = value;
     }
 

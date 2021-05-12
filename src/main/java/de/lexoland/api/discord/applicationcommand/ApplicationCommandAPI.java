@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import de.lexoland.api.discord.applicationcommand.ApplicationCommand.ApplicationCommandChoice;
 import de.lexoland.api.discord.applicationcommand.ApplicationCommand.ApplicationCommandNode;
@@ -43,6 +42,8 @@ public class ApplicationCommandAPI {
 	}
 	
 	public RestAction<ApplicationCommand> registerGuildCommand(long guildId, ApplicationCommand command) {
+		if(jda.getStatus() == JDA.Status.CONNECTED)
+			throw new IllegalStateException("JDA is not ready");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
 		command.build(node);
 		return new RestActionImpl<>(
@@ -55,12 +56,15 @@ public class ApplicationCommandAPI {
 					command.applicationId = obj.getLong("application_id");
 					command.node = node;
 					commands.put(command.id, command);
+					command.updatePermissions(this, jda.getGuildById(guildId)).queue();
 					return command;
 				}
 		);
 	}
 	
 	public RestAction<ApplicationCommand> registerGlobalCommand(ApplicationCommand command) {
+		if(jda.getStatus() == JDA.Status.CONNECTED)
+			throw new IllegalStateException("JDA is not ready yet");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
 		command.build(node);
 		return new RestActionImpl<>(
@@ -77,7 +81,8 @@ public class ApplicationCommandAPI {
 				}
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<ApplicationCommand> getGlobalCommand(String name) {
 		return new RestActionImpl<>(
 			jda,
@@ -93,7 +98,8 @@ public class ApplicationCommandAPI {
 			}
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<ApplicationCommand> getGlobalCommand(long id) {
 		return new RestActionImpl<>(
 			jda,
@@ -102,13 +108,14 @@ public class ApplicationCommandAPI {
 		);
 	}
 	
-	public RestAction<Void> deleteGlobalCommand(long id) {
+	public RestAction<Void> deleteGlobalCommand(long commandId) {
 		return new RestActionImpl<>(
 			jda,
-			Route.delete("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(id))
+			Route.delete("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(commandId))
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<List<ApplicationCommand>> getGlobalCommands() {
 		return new RestActionImpl<>(
 			jda,
@@ -124,7 +131,8 @@ public class ApplicationCommandAPI {
 			}
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<ApplicationCommand> getGuildCommand(long guildId, String name) {
 		return new RestActionImpl<>(
 			jda,
@@ -140,7 +148,8 @@ public class ApplicationCommandAPI {
 			}
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<ApplicationCommand> getGuildCommand(long guildId, long id) {
 		return new RestActionImpl<>(
 			jda,
@@ -149,13 +158,14 @@ public class ApplicationCommandAPI {
 		);
 	}
 	
-	public RestAction<Void> deleteGuildCommand(long guildId, long id) {
+	public RestAction<Void> deleteGuildCommand(long guildId, long commandId) {
 		return new RestActionImpl<>(
 			jda,
-			Route.delete("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(id))
+			Route.delete("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(commandId))
 		);
 	}
-	
+
+	@Deprecated
 	public RestAction<List<ApplicationCommand>> getGuildCommands(long guildId) {
 		return new RestActionImpl<>(
 			jda,
@@ -169,6 +179,32 @@ public class ApplicationCommandAPI {
 				}
 				return commands1;
 			}
+		);
+	}
+
+	public RestAction<Void> editCommandPermissions(Guild guild, long commandId, ApplicationCommandPermission... permissions) {
+		return editCommandPermissions(guild.getIdLong(), commandId, permissions);
+	}
+
+	public RestAction<Void> editCommandPermissions(long guildId, ApplicationCommand command, ApplicationCommandPermission... permissions) {
+		return editCommandPermissions(guildId, command.getId(), permissions);
+	}
+
+	public RestAction<Void> editCommandPermissions(Guild guild, ApplicationCommand command, ApplicationCommandPermission... permissions) {
+		return editCommandPermissions(guild.getIdLong(), command.getId(), permissions);
+	}
+
+	public RestAction<Void> editCommandPermissions(long guildId, long commandId, ApplicationCommandPermission... permissions) {
+		DataArray dataArray = DataArray.empty();
+		for(ApplicationCommandPermission permission : permissions)
+			dataArray.add(permission.getJSON());
+		DataObject dataObject = DataObject.empty();
+		dataObject.put("permissions", dataArray);
+		return new RestActionImpl<>(
+				jda,
+				Route.put("applications/{}/guilds/{}/commands/{}/permissions").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(commandId)),
+				RequestBody.create(MediaType.get("application/json"), dataObject.toJson()),
+				(response, request) -> null
 		);
 	}
 	
@@ -218,18 +254,20 @@ public class ApplicationCommandAPI {
 		DataObject obj = DataObject.empty()
 			.put("name", node.name)
 			.put("description", node.description);
+		if(node instanceof ApplicationCommand.ApplicationRootCommandNode)
+			obj.put("default_permission", node.defaultPermission);
 		if(node.options.size() > 0) {
 			
 			DataArray optionArray = DataArray.empty();
 			for(ApplicationCommandNode option : node.options)
-				optionArray.add(buildOption(option));
+				optionArray.add(buildArgument(option));
 			obj.put("options", optionArray);
 		}
 			
 		return obj;
 	}
 	
-	private DataObject buildOption(ApplicationCommandNode node) {
+	private DataObject buildArgument(ApplicationCommandNode node) {
 		DataObject obj = DataObject.empty();
 		obj.put("name", node.name);
 		obj.put("description", node.description);
@@ -248,7 +286,7 @@ public class ApplicationCommandAPI {
 		if(node.options.size() > 0) {
 			DataArray optionArray = DataArray.empty();
 			for(ApplicationCommandNode option : node.options)
-				optionArray.add(buildOption(option));
+				optionArray.add(buildArgument(option));
 			obj.put("options", optionArray);
 		}
 		return obj;

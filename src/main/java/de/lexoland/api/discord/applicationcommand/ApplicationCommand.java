@@ -1,6 +1,10 @@
 package de.lexoland.api.discord.applicationcommand;
 
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.requests.RestAction;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -31,6 +35,18 @@ public abstract class ApplicationCommand {
 	public ApplicationCommandNode getNode() {
 		return node;
 	}
+
+	public RestAction<Void> updatePermissions(ApplicationCommandAPI api, Guild guild) {
+		if(isRetrieved())
+			throw new IllegalStateException("Can not update permissions of a retrieved command");
+		ApplicationRootCommandNode root = (ApplicationRootCommandNode) node;
+		List<ApplicationCommandPermission> permissions = root.permissionProvider.get(guild);
+		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[permissions.size()]));
+	}
+
+	public boolean isRetrieved() {
+		return !(node instanceof ApplicationRootCommandNode);
+	}
 	
 	public static ApplicationCommandChoice choice(String name, String value) {
 		return new ApplicationCommandChoice(name, value);
@@ -56,6 +72,8 @@ public abstract class ApplicationCommand {
 		protected ApplicationCommandChoice[] choices = new ApplicationCommandChoice[0];
 		protected Consumer<Interaction> execute;
 		protected List<ApplicationCommandNode> options = new ArrayList<>();
+		protected PermissionProvider permissionProvider = g -> new ArrayList<>();
+		protected boolean defaultPermission = true;
 
 		protected ApplicationCommandNode(String name, int type) {
 			this.name = name.toLowerCase();
@@ -118,13 +136,23 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationRootCommandNode argument(String name, int type, boolean required, ApplicationCommandChoice... choices) {
+		public ApplicationRootCommandNode argument(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
 			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
 			return this;
 		}
 
 		public ApplicationRootCommandNode executes(Consumer<Interaction> execute) {
 			this.execute = execute;
+			return this;
+		}
+
+		public ApplicationRootCommandNode permissions(PermissionProvider permissionProvider) {
+			this.permissionProvider = permissionProvider;
+			return this;
+		}
+
+		public ApplicationRootCommandNode defaultPermission(boolean value) {
+			this.defaultPermission = value;
 			return this;
 		}
 	}
@@ -135,7 +163,7 @@ public abstract class ApplicationCommand {
 			super(name, SUB_COMMAND);
 		}
 
-		public ApplicationSubCommandNode argument(String name, int type, boolean required, ApplicationCommandChoice... choices) {
+		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
 			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
 			return this;
 		}
@@ -160,8 +188,8 @@ public abstract class ApplicationCommand {
 
 	public static class ApplicationArgumentCommandNode extends ApplicationCommandNode {
 
-		public ApplicationArgumentCommandNode(String name, int type, boolean required, ApplicationCommandChoice... choices) {
-			super(name, type);
+		public ApplicationArgumentCommandNode(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
+			super(name, type.getValue());
 			this.required = required;
 			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)
 				throw new IllegalArgumentException("Choices are only available for strings and integers");
