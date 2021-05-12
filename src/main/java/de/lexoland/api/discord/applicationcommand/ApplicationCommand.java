@@ -48,10 +48,6 @@ public abstract class ApplicationCommand {
 		return new ApplicationSubCommandGroupNode(name);
 	}
 
-	public static ApplicationArgumentCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
-		return new ApplicationArgumentCommandNode(name, type);
-	}
-	
 	public static class ApplicationCommandNode {
 		
 		protected String name, description = "No Description";
@@ -80,26 +76,6 @@ public abstract class ApplicationCommand {
 			this.description = description;
 			return this;
 		}
-		
-		public ApplicationCommandNode required(boolean required) {
-			this.required = required;
-			return this;
-		}
-
-		/*public ApplicationCommandNode choices(ApplicationCommandChoice... choices) {
-			this.choices = choices;
-			return this;
-		}
-
-		public ApplicationCommandNode executes(Consumer<Interaction> execute) {
-			this.execute = execute;
-			return this;
-		}
-		
-		public ApplicationCommandNode then(ApplicationCommandNode option) {
-			options.add(option);
-			return this;
-		}*/
 		
 		public ApplicationCommandChoice[] getChoices() {
 			return choices;
@@ -142,8 +118,8 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationRootCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
-			options.add(new ApplicationArgumentCommandNode(name, type, choices));
+		public ApplicationRootCommandNode argument(String name, int type, boolean required, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
 			return this;
 		}
 
@@ -159,8 +135,8 @@ public abstract class ApplicationCommand {
 			super(name, SUB_COMMAND);
 		}
 
-		public ApplicationSubCommandNode argument(String name, int type, ApplicationCommandChoice... choices) {
-			options.add(new ApplicationArgumentCommandNode(name, type, choices));
+		public ApplicationSubCommandNode argument(String name, int type, boolean required, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
 			return this;
 		}
 
@@ -184,8 +160,9 @@ public abstract class ApplicationCommand {
 
 	public static class ApplicationArgumentCommandNode extends ApplicationCommandNode {
 
-		public ApplicationArgumentCommandNode(String name, int type, ApplicationCommandChoice... choices) {
+		public ApplicationArgumentCommandNode(String name, int type, boolean required, ApplicationCommandChoice... choices) {
 			super(name, type);
+			this.required = required;
 			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)
 				throw new IllegalArgumentException("Choices are only available for strings and integers");
 			this.choices = choices;

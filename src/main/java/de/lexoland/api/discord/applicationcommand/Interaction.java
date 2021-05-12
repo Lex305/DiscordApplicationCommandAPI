@@ -2,6 +2,7 @@ package de.lexoland.api.discord.applicationcommand;
 
 import java.util.HashMap;
 
+import de.lexoland.api.discord.applicationcommand.restaction.CommandCallbackDataActionImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.utils.data.DataArray;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.JDAImpl;
@@ -18,6 +20,7 @@ import net.dv8tion.jda.internal.entities.EntityBuilder;
 import net.dv8tion.jda.internal.entities.GuildImpl;
 import net.dv8tion.jda.internal.requests.RestActionImpl;
 import net.dv8tion.jda.internal.requests.Route;
+import net.dv8tion.jda.internal.requests.restaction.MessageActionImpl;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
@@ -53,30 +56,44 @@ public class Interaction {
 	}
 	
 	public RestAction<Void> sendInteractionResponse(InteractionResponseType type) {
-		return sendInteractionResponse(type, null);
+		DataObject obj = DataObject.empty();
+		obj.put("type", type.getValue());
+		return new RestActionImpl<>(
+				jda,
+				Route.post("/interactions/{}/{}/callback").compile(String.valueOf(id), token),
+				RequestBody.create(MediaType.get("application/json"), obj.toJson()),
+				(response, voidRequest) -> null
+		);
 	}
 	
-	public RestAction<Void> sendInteractionResponse(InteractionResponseType type, String content, MessageEmbed... embeds) {
-		DataObject obj = DataObject.empty()
-			.put("type", type.getValue());
-		if(content != null) {
-			DataObject data = DataObject.empty()
-				.put("content", content);
-			if(embeds.length > 0) {
-				DataArray embedData = DataArray.empty();
-				for(MessageEmbed embed : embeds)
-					embedData.add(embed.toData());
-				data.put("embeds", embedData);
-			}
-			obj.put("data", data);
-			
+	public MessageAction sendInteractionResponse(InteractionResponseType type, String content) {
+		return new CommandCallbackDataActionImpl(
+				jda,
+				Route.post("/interactions/{}/{}/callback").compile(String.valueOf(id), token),
+				type,
+				messageChannel
+		).content(content);
+	}
+
+	public MessageAction editOriginalInteractionResponse(String content) {
+		return new MessageActionImpl(
+				jda,
+				Route.patch("/webhooks/{}/{}/messages/@original").compile(jda.getSelfUser().getId(), token),
+				messageChannel
+		).content(content);
+	}
+
+	private DataObject callbackData(String content, MessageEmbed... embeds) {
+		DataObject data = DataObject.empty();
+		if(content != null)
+			data.put("content", content);
+		if(embeds.length > 0) {
+			DataArray embedData = DataArray.empty();
+			for(MessageEmbed embed : embeds)
+				embedData.add(embed.toData());
+			data.put("embeds", embedData);
 		}
-		return new RestActionImpl<>(
-			jda,
-			Route.post("interactions/{}/{}/callback").compile(String.valueOf(id), token),
-			RequestBody.create(MediaType.get("application/json"), obj.toJson()),
-			(response, request) -> null
-		);
+		return data;
 	}
 	
 	public RestAction<Void> sendFollowUpMessage(String content) {
