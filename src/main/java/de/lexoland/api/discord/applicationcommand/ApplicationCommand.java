@@ -40,7 +40,8 @@ public abstract class ApplicationCommand {
 		if(isRetrieved())
 			throw new IllegalStateException("Can not update permissions of a retrieved command");
 		ApplicationRootCommandNode root = (ApplicationRootCommandNode) node;
-		List<ApplicationCommandPermission> permissions = root.permissionProvider.get(guild);
+		List<ApplicationCommandPermission> permissions = new ArrayList<>();
+		root.permissionProvider.get(permissions, guild);
 		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[permissions.size()]));
 	}
 
@@ -72,7 +73,7 @@ public abstract class ApplicationCommand {
 		protected ApplicationCommandChoice[] choices = new ApplicationCommandChoice[0];
 		protected Consumer<Interaction> execute;
 		protected List<ApplicationCommandNode> options = new ArrayList<>();
-		protected PermissionProvider permissionProvider = g -> new ArrayList<>();
+		protected PermissionProvider permissionProvider = (permissions, g) -> {};
 		protected boolean defaultPermission = true;
 
 		protected ApplicationCommandNode(String name, int type) {
@@ -84,16 +85,7 @@ public abstract class ApplicationCommand {
 			this.name = name.toLowerCase();
 			this.type = 0;
 		}
-		
-		public ApplicationCommandNode name(String name) {
-			this.name = name;
-			return this;
-		}
-		
-		public ApplicationCommandNode description(String description) {
-			this.description = description;
-			return this;
-		}
+
 		
 		public ApplicationCommandChoice[] getChoices() {
 			return choices;
@@ -136,8 +128,13 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
+		public ApplicationRootCommandNode argument(String name, ArgumentType type, boolean required, String description, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, description, choices));
+			return this;
+		}
+
 		public ApplicationRootCommandNode argument(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
-			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
+			options.add(new ApplicationArgumentCommandNode(name, type, required, "No description", choices));
 			return this;
 		}
 
@@ -155,6 +152,11 @@ public abstract class ApplicationCommand {
 			this.defaultPermission = value;
 			return this;
 		}
+
+		public ApplicationRootCommandNode description(String description) {
+			this.description = description;
+			return this;
+		}
 	}
 
 	public static class ApplicationSubCommandNode extends ApplicationCommandNode {
@@ -163,8 +165,13 @@ public abstract class ApplicationCommand {
 			super(name, SUB_COMMAND);
 		}
 
+		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required, String description, ApplicationCommandChoice... choices) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, description, choices));
+			return this;
+		}
+
 		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
-			options.add(new ApplicationArgumentCommandNode(name, type, required, choices));
+			options.add(new ApplicationArgumentCommandNode(name, type, required, "No description", choices));
 			return this;
 		}
 
@@ -173,6 +180,10 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
+		public ApplicationSubCommandNode description(String description) {
+			this.description = description;
+			return this;
+		}
 	}
 	public static class ApplicationSubCommandGroupNode extends ApplicationCommandNode {
 
@@ -188,7 +199,7 @@ public abstract class ApplicationCommand {
 
 	public static class ApplicationArgumentCommandNode extends ApplicationCommandNode {
 
-		public ApplicationArgumentCommandNode(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
+		public ApplicationArgumentCommandNode(String name, ArgumentType type, boolean required, String description, ApplicationCommandChoice... choices) {
 			super(name, type.getValue());
 			this.required = required;
 			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)

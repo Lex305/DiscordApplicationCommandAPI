@@ -7,6 +7,6 @@ import java.util.List;
 @FunctionalInterface
 public interface PermissionProvider {
 
-    List<ApplicationCommandPermission> get(Guild g);
+    void get(List<ApplicationCommandPermission> permissions, Guild g);
 
 }
