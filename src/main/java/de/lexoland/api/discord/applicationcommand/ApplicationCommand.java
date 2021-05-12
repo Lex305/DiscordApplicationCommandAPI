@@ -17,7 +17,7 @@ public abstract class ApplicationCommand {
 	protected long applicationId;
 	protected ApplicationCommandNode node;
 	
-	public abstract void build(ApplicationRootCommandNode root);
+	public abstract void build(ApplicationRootCommandNode root, Guild guild);
 	public abstract String getName();
 	
 	protected ApplicationCommandNode option(String name, int type) {

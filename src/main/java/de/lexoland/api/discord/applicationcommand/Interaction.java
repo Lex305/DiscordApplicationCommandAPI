@@ -120,7 +120,7 @@ public class Interaction {
 	}
 	
 	public String getArgumentString(String name) {
-		return (String) optionValues.get(name);
+		return (String) optionValues.get(name.toLowerCase());
 	}
 	
 	public boolean getArgumentBoolean(String name) {
@@ -160,7 +160,7 @@ public class Interaction {
 	}
 	
 	public String getArgumentString(String name, String def) {
-		return (String) optionValues.getOrDefault(name, def);
+		return (String) optionValues.getOrDefault(name.toLowerCase(), def);
 	}
 	
 	public boolean getArgumentBoolean(String name, boolean def) {

@@ -45,7 +45,7 @@ public class ApplicationCommandAPI {
 		if(jda.getStatus() == JDA.Status.CONNECTED)
 			throw new IllegalStateException("JDA is not ready");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
-		command.build(node);
+		command.build(node, jda.getGuildById(guildId));
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
@@ -66,7 +66,7 @@ public class ApplicationCommandAPI {
 		if(jda.getStatus() == JDA.Status.CONNECTED)
 			throw new IllegalStateException("JDA is not ready yet");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
-		command.build(node);
+		command.build(node, null);
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
@@ -212,7 +212,7 @@ public class ApplicationCommandAPI {
 		String name = commandData.getString("name");
 		ApplicationCommand command = new ApplicationCommand() {
 			@Override
-			public void build(ApplicationRootCommandNode root) { }
+			public void build(ApplicationRootCommandNode root, Guild guild) { }
 
 			@Override
 			public String getName() {
