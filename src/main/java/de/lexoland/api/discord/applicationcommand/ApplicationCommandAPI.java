@@ -37,11 +37,11 @@ public class ApplicationCommandAPI {
 		handlers.put("INTERACTION_CREATE", new InteractionCreateHandler(jda, this));
 	}
 	
-	public RestAction<ApplicationCommand> registerGuildCommand(Guild guild, ApplicationCommand command) {
+	public <T extends ApplicationCommand> RestAction<T> registerGuildCommand(Guild guild, T command) {
 		return registerGuildCommand(guild.getIdLong(), command);
 	}
 	
-	public RestAction<ApplicationCommand> registerGuildCommand(long guildId, ApplicationCommand command) {
+	public <T extends ApplicationCommand> RestAction<T> registerGuildCommand(long guildId, T command) {
 		if(jda.getStatus() == JDA.Status.CONNECTED)
 			throw new IllegalStateException("JDA is not ready");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
@@ -62,7 +62,7 @@ public class ApplicationCommandAPI {
 		);
 	}
 	
-	public RestAction<ApplicationCommand> registerGlobalCommand(ApplicationCommand command) {
+	public <T extends ApplicationCommand> RestAction<T> registerGlobalCommand(T command) {
 		if(jda.getStatus() == JDA.Status.CONNECTED)
 			throw new IllegalStateException("JDA is not ready yet");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
