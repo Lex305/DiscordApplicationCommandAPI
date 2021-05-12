@@ -25,7 +25,8 @@ import okhttp3.RequestBody;
 public class ApplicationCommandAPI {
 	
 	private final JDAImpl jda;
-	private final HashMap<Long, ApplicationCommand> commands = new HashMap<>();
+	private final List<ApplicationCommand> globalCommands = new ArrayList<>();
+	private final HashMap<Long, List<ApplicationCommand>> guildCommands = new HashMap<>();
 	
 	public ApplicationCommandAPI(JDA jda) {
 		this.jda = (JDAImpl) jda;
@@ -55,7 +56,11 @@ public class ApplicationCommandAPI {
 					command.id = obj.getLong("id");
 					command.applicationId = obj.getLong("application_id");
 					command.node = node;
-					commands.put(command.id, command);
+
+					List<ApplicationCommand> commands = guildCommands.getOrDefault(guildId, new ArrayList<>());
+					commands.add(command);
+					guildCommands.put(guildId, commands);
+
 					command.updatePermissions(this, jda.getGuildById(guildId)).queue();
 					return command;
 				}
@@ -76,14 +81,14 @@ public class ApplicationCommandAPI {
 					command.id = obj.getLong("id");
 					command.applicationId = obj.getLong("application_id");
 					command.node = node;
-					commands.put(command.id, command);
+					globalCommands.add(command);
 					return command;
 				}
 		);
 	}
 
 	@Deprecated
-	public RestAction<ApplicationCommand> getGlobalCommand(String name) {
+	public RestAction<ApplicationCommand> retrieveGlobalCommand(String commandName) {
 		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
@@ -91,7 +96,7 @@ public class ApplicationCommandAPI {
 				DataArray array = response.getArray();
 				for(int i = 0; i < array.length(); i++) {
 					DataObject command = array.getObject(i);
-					if(command.getString("name").equalsIgnoreCase(name))
+					if(command.getString("name").equalsIgnoreCase(commandName))
 						return commandFromDataObject(command);
 				}
 				return null;
@@ -100,12 +105,26 @@ public class ApplicationCommandAPI {
 	}
 
 	@Deprecated
-	public RestAction<ApplicationCommand> getGlobalCommand(long id) {
+	public RestAction<ApplicationCommand> retrieveGlobalCommand(long commandId) {
 		return new RestActionImpl<>(
 			jda,
-			Route.get("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(id)),
+			Route.get("applications/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(commandId)),
 			(response, request) -> commandFromDataObject(response.getObject())
 		);
+	}
+
+	public ApplicationCommand getGlobalCommand(long commandId) {
+		for(ApplicationCommand command : getGlobalCommands())
+			if(command.id == commandId)
+				return command;
+		return null;
+	}
+
+	public ApplicationCommand getGlobalCommand(String commandName) {
+		for(ApplicationCommand command : getGlobalCommands())
+			if(command.getName().equalsIgnoreCase(commandName))
+				return command;
+		return null;
 	}
 	
 	public RestAction<Void> deleteGlobalCommand(long commandId) {
@@ -116,7 +135,7 @@ public class ApplicationCommandAPI {
 	}
 
 	@Deprecated
-	public RestAction<List<ApplicationCommand>> getGlobalCommands() {
+	public RestAction<List<ApplicationCommand>> retrieveGlobalCommands() {
 		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
@@ -132,8 +151,12 @@ public class ApplicationCommandAPI {
 		);
 	}
 
+	public List<ApplicationCommand> getGlobalCommands() {
+		return globalCommands;
+	}
+
 	@Deprecated
-	public RestAction<ApplicationCommand> getGuildCommand(long guildId, String name) {
+	public RestAction<ApplicationCommand> retrieveGuildCommand(long guildId, String commandName) {
 		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
@@ -141,7 +164,7 @@ public class ApplicationCommandAPI {
 				DataArray array = response.getArray();
 				for(int i = 0; i < array.length(); i++) {
 					DataObject command = array.getObject(i);
-					if(command.getString("name").equalsIgnoreCase(name))
+					if(command.getString("name").equalsIgnoreCase(commandName))
 						return commandFromDataObject(command);
 				}
 				return null;
@@ -150,12 +173,26 @@ public class ApplicationCommandAPI {
 	}
 
 	@Deprecated
-	public RestAction<ApplicationCommand> getGuildCommand(long guildId, long id) {
+	public RestAction<ApplicationCommand> retrieveGuildCommand(long guildId, long commandId) {
 		return new RestActionImpl<>(
 			jda,
-			Route.get("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(id)),
+			Route.get("applications/{}/guilds/{}/commands/{}").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId), String.valueOf(commandId)),
 			(response, request) -> commandFromDataObject(response.getObject())
 		);
+	}
+
+	public ApplicationCommand getGuildCommand(long guildId, long commandId) {
+		for(ApplicationCommand command : getGuildCommands(guildId))
+			if(command.id == commandId)
+				return command;
+		return null;
+	}
+
+	public ApplicationCommand getGuildCommand(long guildId, String commandName) {
+		for(ApplicationCommand command : getGuildCommands(guildId))
+			if(command.getName().equalsIgnoreCase(commandName))
+				return command;
+		return null;
 	}
 	
 	public RestAction<Void> deleteGuildCommand(long guildId, long commandId) {
@@ -166,7 +203,7 @@ public class ApplicationCommandAPI {
 	}
 
 	@Deprecated
-	public RestAction<List<ApplicationCommand>> getGuildCommands(long guildId) {
+	public RestAction<List<ApplicationCommand>> retrieveGuildCommands(long guildId) {
 		return new RestActionImpl<>(
 			jda,
 			Route.get("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
@@ -180,6 +217,10 @@ public class ApplicationCommandAPI {
 				return commands1;
 			}
 		);
+	}
+
+	public List<ApplicationCommand> getGuildCommands(long guildId) {
+		return guildCommands.getOrDefault(guildId, new ArrayList<>());
 	}
 
 	public RestAction<Void> editCommandPermissions(Guild guild, long commandId, ApplicationCommandPermission... permissions) {
@@ -300,10 +341,6 @@ public class ApplicationCommandAPI {
 	
 	public JDA getJDA() {
 		return jda;
-	}
-	
-	public HashMap<Long, ApplicationCommand> getCommands() {
-		return commands;
 	}
 
 }
