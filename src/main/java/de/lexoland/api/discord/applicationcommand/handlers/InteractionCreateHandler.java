@@ -26,7 +26,13 @@ public class InteractionCreateHandler extends SocketHandler {
 	@Override
 	protected Long handleInternally(DataObject content) {
 		DataObject data = content.getObject("data");
-		ApplicationCommand command = commandAPI.getCommands().get(data.getLong("id"));
+		long id = data.getLong("id");
+		ApplicationCommand command = null;
+		for(ApplicationCommand c : commandAPI.getAllCommands())
+			if(c.getId() == id)
+				command = c;
+		if(command == null)
+			return null;
 		ApplicationCommandNode mainNode = command.getNode();
 		
 		execute = null;

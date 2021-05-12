@@ -25,6 +25,7 @@ import okhttp3.RequestBody;
 public class ApplicationCommandAPI {
 	
 	private final JDAImpl jda;
+	private final List<ApplicationCommand> allCommands = new ArrayList<>();
 	private final List<ApplicationCommand> globalCommands = new ArrayList<>();
 	private final HashMap<Long, List<ApplicationCommand>> guildCommands = new HashMap<>();
 	
@@ -60,6 +61,7 @@ public class ApplicationCommandAPI {
 					List<ApplicationCommand> commands = guildCommands.getOrDefault(guildId, new ArrayList<>());
 					commands.add(command);
 					guildCommands.put(guildId, commands);
+					allCommands.add(command);
 
 					command.updatePermissions(this, jda.getGuildById(guildId)).queue();
 					return command;
@@ -82,6 +84,7 @@ public class ApplicationCommandAPI {
 					command.applicationId = obj.getLong("application_id");
 					command.node = node;
 					globalCommands.add(command);
+					allCommands.add(command);
 					return command;
 				}
 		);
@@ -267,7 +270,11 @@ public class ApplicationCommandAPI {
 				(response, request) -> null
 		);
 	}
-	
+
+	public List<ApplicationCommand> getAllCommands() {
+		return allCommands;
+	}
+
 	private ApplicationCommand commandFromDataObject(DataObject commandData) {
 		String name = commandData.getString("name");
 		ApplicationCommand command = new ApplicationCommand() {
