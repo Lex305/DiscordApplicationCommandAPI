@@ -248,6 +248,25 @@ public class ApplicationCommandAPI {
 				(response, request) -> null
 		);
 	}
+
+	public RestAction<Void> batchEditCommandPermissions(long guildId, HashMap<ApplicationCommand, List<ApplicationCommandPermission>> permissions) {
+		DataArray array = DataArray.empty();
+		for(Map.Entry<ApplicationCommand, List<ApplicationCommandPermission>> entry : permissions.entrySet()) {
+			DataArray dataArray = DataArray.empty();
+			for(ApplicationCommandPermission permission : entry.getValue())
+				dataArray.add(permission.getJSON());
+			DataObject dataObject = DataObject.empty();
+			dataObject.put("id", entry.getKey().getId());
+			dataObject.put("permissions", dataArray);
+			array.add(dataObject);
+		}
+		return new RestActionImpl<>(
+				jda,
+				Route.put("applications/{}/guilds/{}/commands/permissions").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
+				RequestBody.create(MediaType.get("application/json"), array.toJson()),
+				(response, request) -> null
+		);
+	}
 	
 	private ApplicationCommand commandFromDataObject(DataObject commandData) {
 		String name = commandData.getString("name");

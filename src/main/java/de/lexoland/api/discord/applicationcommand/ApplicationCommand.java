@@ -37,12 +37,17 @@ public abstract class ApplicationCommand {
 	}
 
 	public RestAction<Void> updatePermissions(ApplicationCommandAPI api, Guild guild) {
+		List<ApplicationCommandPermission> permissions = getPermissions(guild);
+		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[permissions.size()]));
+	}
+
+	public List<ApplicationCommandPermission> getPermissions(Guild guild) {
 		if(isRetrieved())
 			throw new IllegalStateException("Can not update permissions of a retrieved command");
 		ApplicationRootCommandNode root = (ApplicationRootCommandNode) node;
 		List<ApplicationCommandPermission> permissions = new ArrayList<>();
 		root.permissionProvider.get(permissions, guild);
-		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[permissions.size()]));
+		return permissions;
 	}
 
 	public boolean isRetrieved() {
