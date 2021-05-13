@@ -144,6 +144,16 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
+		public ApplicationRootCommandNode argument(String name, ArgumentType type, boolean required, String description, ChoiceProvider choiceProvider) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, description, choiceProvider));
+			return this;
+		}
+
+		public ApplicationRootCommandNode argument(String name, ArgumentType type, boolean required,  ChoiceProvider choiceProvider) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, "No description", choiceProvider));
+			return this;
+		}
+
 		public ApplicationRootCommandNode executes(Consumer<Interaction> execute) {
 			this.execute = execute;
 			return this;
@@ -178,6 +188,16 @@ public abstract class ApplicationCommand {
 
 		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required, ApplicationCommandChoice... choices) {
 			options.add(new ApplicationArgumentCommandNode(name, type, required, "No description", choices));
+			return this;
+		}
+
+		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required, String description, ChoiceProvider choiceProvider) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, description, choiceProvider));
+			return this;
+		}
+
+		public ApplicationSubCommandNode argument(String name, ArgumentType type, boolean required,  ChoiceProvider choiceProvider) {
+			options.add(new ApplicationArgumentCommandNode(name, type, required, "No description", choiceProvider));
 			return this;
 		}
 
