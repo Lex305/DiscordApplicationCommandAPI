@@ -45,8 +45,6 @@ public class ApplicationCommandAPI {
 	}
 	
 	public <T extends ApplicationCommand> RestAction<T> registerGuildCommand(long guildId, T command) {
-		if(jda.getStatus() == JDA.Status.CONNECTED)
-			throw new IllegalStateException("JDA is not ready");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
 		command.build(node, jda.getGuildById(guildId));
 		return new RestActionImpl<>(
@@ -71,8 +69,6 @@ public class ApplicationCommandAPI {
 	}
 	
 	public <T extends ApplicationCommand> RestAction<T> registerGlobalCommand(T command) {
-		if(jda.getStatus() == JDA.Status.CONNECTED)
-			throw new IllegalStateException("JDA is not ready yet");
 		ApplicationCommand.ApplicationRootCommandNode node = new ApplicationCommand.ApplicationRootCommandNode(command.getName());
 		command.build(node, null);
 		return new RestActionImpl<>(

@@ -342,7 +342,8 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
             data.put("tts", tts);
             if (allowedMentions != null || !mentionableUsers.isEmpty() || !mentionableRoles.isEmpty())
                 data.put("allowed_mentions", getAllowedMentionsObj());
-            data.put("flags", flags);
+            if(flags != -1)
+                data.put("flags", flags);
             obj.put("data", data);
         }
         return obj;
