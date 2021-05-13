@@ -2,6 +2,7 @@ package de.lexoland.api.discord.applicationcommand;
 
 import java.util.HashMap;
 
+import de.lexoland.api.discord.applicationcommand.restaction.CommandCallbackDataAction;
 import de.lexoland.api.discord.applicationcommand.restaction.CommandCallbackDataActionImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -66,7 +67,7 @@ public class Interaction {
 		);
 	}
 	
-	public MessageAction sendInteractionResponse(InteractionResponseType type, String content) {
+	public CommandCallbackDataAction sendInteractionResponse(InteractionResponseType type, String content) {
 		return new CommandCallbackDataActionImpl(
 				jda,
 				Route.post("/interactions/{}/{}/callback").compile(String.valueOf(id), token),
