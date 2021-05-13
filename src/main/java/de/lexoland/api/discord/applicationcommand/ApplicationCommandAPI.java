@@ -342,7 +342,8 @@ public class ApplicationCommandAPI {
 		obj.put("type", node.type);
 		obj.put("required", node.required);
 		List<ApplicationCommandChoice> choices = new ArrayList<>();
-		node.choiceProvider.get(choices, g);
+		if(node.choiceProvider != null)
+			node.choiceProvider.get(choices, g);
 		if(choices.size() > 0) {
 			DataArray choicesArray = DataArray.empty();
 			for(ApplicationCommandChoice choice : choices) {

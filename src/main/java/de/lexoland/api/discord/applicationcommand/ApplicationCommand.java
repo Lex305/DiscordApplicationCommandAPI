@@ -39,7 +39,7 @@ public abstract class ApplicationCommand {
 
 	public RestAction<Void> updatePermissions(ApplicationCommandAPI api, Guild guild) {
 		List<ApplicationCommandPermission> permissions = getPermissions(guild);
-		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[permissions.size()]));
+		return api.editCommandPermissions(guild, id, permissions.toArray(new ApplicationCommandPermission[0]));
 	}
 
 	public List<ApplicationCommandPermission> getPermissions(Guild guild) {
