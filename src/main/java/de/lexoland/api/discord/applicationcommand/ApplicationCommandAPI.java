@@ -1,6 +1,7 @@
 package de.lexoland.api.discord.applicationcommand;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class ApplicationCommandAPI {
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
-				RequestBody.create(MediaType.get("application/json"), build(node).toJson()),
+				RequestBody.create(MediaType.get("application/json"), build(jda.getGuildById(guildId), node).toJson()),
 				(response, request) -> {
 					DataObject obj = response.optObject().get();
 					command.id = obj.getLong("id");
@@ -77,7 +78,7 @@ public class ApplicationCommandAPI {
 		return new RestActionImpl<>(
 				jda,
 				Route.post("applications/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong())),
-				RequestBody.create(MediaType.get("application/json"), build(node).toJson()),
+				RequestBody.create(MediaType.get("application/json"), build(null, node).toJson()),
 				(response, request) -> {
 					DataObject obj = response.optObject().get();
 					command.id = obj.getLong("id");
@@ -306,7 +307,7 @@ public class ApplicationCommandAPI {
 				DataObject choiceData = choicesData.getObject(i);
 				choices[i] = new ApplicationCommandChoice(choiceData.getString("name"), choiceData.get("value"));
 			}
-			node.choices = choices;
+			node.choiceProvider = (choices1, g) -> Collections.addAll(choices1, choices);
 		}
 		if(nodeData.hasKey("options")) {
 			DataArray optionsData = nodeData.getArray("options");
@@ -317,7 +318,7 @@ public class ApplicationCommandAPI {
 		return node;
 	}
 	
-	private DataObject build(ApplicationCommandNode node) {
+	private DataObject build(Guild g, ApplicationCommandNode node) {
 		DataObject obj = DataObject.empty()
 			.put("name", node.name)
 			.put("description", node.description);
@@ -327,22 +328,24 @@ public class ApplicationCommandAPI {
 			
 			DataArray optionArray = DataArray.empty();
 			for(ApplicationCommandNode option : node.options)
-				optionArray.add(buildArgument(option));
+				optionArray.add(buildArgument(g, option));
 			obj.put("options", optionArray);
 		}
 			
 		return obj;
 	}
 	
-	private DataObject buildArgument(ApplicationCommandNode node) {
+	private DataObject buildArgument(Guild g, ApplicationCommandNode node) {
 		DataObject obj = DataObject.empty();
 		obj.put("name", node.name);
 		obj.put("description", node.description);
 		obj.put("type", node.type);
 		obj.put("required", node.required);
-		if(node.choices.length > 0) {
+		List<ApplicationCommandChoice> choices = new ArrayList<>();
+		node.choiceProvider.get(choices, g);
+		if(choices.size() > 0) {
 			DataArray choicesArray = DataArray.empty();
-			for(ApplicationCommandChoice choice : node.choices) {
+			for(ApplicationCommandChoice choice : choices) {
 				DataObject choiceObj = DataObject.empty();
 				choiceObj.put("name", choice.getName());
 				choiceObj.put("value", choice.getValue());
@@ -353,7 +356,7 @@ public class ApplicationCommandAPI {
 		if(node.options.size() > 0) {
 			DataArray optionArray = DataArray.empty();
 			for(ApplicationCommandNode option : node.options)
-				optionArray.add(buildArgument(option));
+				optionArray.add(buildArgument(g, option));
 			obj.put("options", optionArray);
 		}
 		return obj;

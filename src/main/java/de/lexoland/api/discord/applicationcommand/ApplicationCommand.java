@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -75,7 +76,7 @@ public abstract class ApplicationCommand {
 		protected String name, description = "No Description";
 		protected int type;
 		protected boolean required;
-		protected ApplicationCommandChoice[] choices = new ApplicationCommandChoice[0];
+		protected ChoiceProvider choiceProvider = (choices1, g) -> {};
 		protected Consumer<Interaction> execute;
 		protected List<ApplicationCommandNode> options = new ArrayList<>();
 		protected PermissionProvider permissionProvider = (permissions, g) -> {};
@@ -91,11 +92,11 @@ public abstract class ApplicationCommand {
 			this.type = 0;
 		}
 
-		
-		public ApplicationCommandChoice[] getChoices() {
-			return choices;
+
+		public ChoiceProvider getChoiceProvider() {
+			return choiceProvider;
 		}
-		
+
 		public String getDescription() {
 			return description;
 		}
@@ -205,11 +206,15 @@ public abstract class ApplicationCommand {
 	public static class ApplicationArgumentCommandNode extends ApplicationCommandNode {
 
 		public ApplicationArgumentCommandNode(String name, ArgumentType type, boolean required, String description, ApplicationCommandChoice... choices) {
+			this(name, type, required, description, choices.length == 0 ? null : (choices1, g) -> Collections.addAll(choices1, choices));
+		}
+
+		public ApplicationArgumentCommandNode(String name, ArgumentType type, boolean required, String description, ChoiceProvider choiceProvider) {
 			super(name, type.getValue());
 			this.required = required;
-			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choices.length >= 1)
+			if(type != ArgumentType.STRING && type != ArgumentType.INTEGER && choiceProvider != null)
 				throw new IllegalArgumentException("Choices are only available for strings and integers");
-			this.choices = choices;
+			this.choiceProvider = choiceProvider;
 			this.description = description;
 		}
 	}
