@@ -108,99 +108,99 @@ public class Interaction {
 	}
 	
 	private long getArgumentLong(String name) {
-		return Long.parseLong((String) optionValues.get(name));
+		return Long.parseLong((String) optionValues.get(name.toLowerCase()));
 	}
 	
 	private long getArgumentLong(String name, long def) {
-		return Long.parseLong((String) optionValues.getOrDefault(name, String.valueOf(def)));
+		return Long.parseLong((String) optionValues.getOrDefault(name.toLowerCase(), String.valueOf(def)));
 	}
-	
+
 	public int getArgumentInt(String name) {
-		return (int) optionValues.get(name);
+		return (int) optionValues.get(name.toLowerCase());
 	}
-	
+
 	public String getArgumentString(String name) {
 		return (String) optionValues.get(name.toLowerCase());
 	}
-	
+
 	public boolean getArgumentBoolean(String name) {
-		return (boolean) optionValues.get(name);
+		return (boolean) optionValues.get(name.toLowerCase());
 	}
-	
+
 	public User getArgumentUser(String name) {
-		return jda.getUserById((String) optionValues.get(name));
+		return jda.getUserById((String) optionValues.get(name.toLowerCase()));
 	}
 
 	public RestAction<User> getArgumentUserRetrieved(String name) {
-		return jda.retrieveUserById((String) optionValues.get(name));
+		return jda.retrieveUserById((String) optionValues.get(name.toLowerCase()));
 	}
-	
+
 	public long getArgumentUserLong(String name) {
-		return (long) getArgumentLong(name);
+		return (long) getArgumentLong(name.toLowerCase());
 	}
-	
+
 	public GuildChannel getArgumentChannel(String name) {
-		return jda.getGuildChannelById((long) optionValues.get(name));
+		return jda.getGuildChannelById((String) optionValues.get(name.toLowerCase()));
 	}
-	
+
 	public long getArgumentChannelLong(String name) {
-		return (long) getArgumentLong(name);
+		return (long) getArgumentLong(name.toLowerCase());
 	}
-	
+
 	public Role getArgumentRole(String name) {
-		return jda.getRoleById((String) optionValues.get(name));
+		return jda.getRoleById((String) optionValues.get(name.toLowerCase()));
 	}
-	
+
 	public long getArgumentRoleLong(String name) {
-		return (long) getArgumentLong(name);
+		return (long) getArgumentLong(name.toLowerCase());
 	}
-	
+
 	public int getArgumentInt(String name, int def) {
-		return (int) optionValues.getOrDefault(name, def);
+		return (int) optionValues.getOrDefault(name.toLowerCase(), def);
 	}
-	
+
 	public String getArgumentString(String name, String def) {
 		return (String) optionValues.getOrDefault(name.toLowerCase(), def);
 	}
-	
+
 	public boolean getArgumentBoolean(String name, boolean def) {
-		return (boolean) optionValues.getOrDefault(name, def);
+		return (boolean) optionValues.getOrDefault(name.toLowerCase(), def);
 	}
-	
+
 	public User getArgumentUser(String name, User def) {
-		return jda.getUserById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
+		return jda.getUserById(Long.parseLong((String) optionValues.getOrDefault(name.toLowerCase(), def)));
 	}
-	
+
 	public long getArgumentUserLong(String name, long def) {
 		return getArgumentLong(name, def);
 	}
-	
+
 	public GuildChannel getArgumentChannel(String name, GuildChannel def) {
-		return jda.getGuildChannelById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
+		return jda.getGuildChannelById(Long.parseLong((String) optionValues.getOrDefault(name.toLowerCase(), def)));
 	}
-	
+
 	public long getArgumentChannelLong(String name, long def) {
 		return getArgumentLong(name, def);
 	}
-	
+
 	public Role getArgumentRole(String name, Role def) {
-		return jda.getRoleById(Long.parseLong((String) optionValues.getOrDefault(name, def)));
+		return jda.getRoleById(Long.parseLong((String) optionValues.getOrDefault(name.toLowerCase(), def)));
 	}
-	
+
 	public long getArgumentRoleLong(String name, long def) {
 		return getArgumentLong(name, def);
 	}
-	
+
 	public Object getArgument(String name, Object def) {
-		return optionValues.getOrDefault(name, def);
+		return optionValues.getOrDefault(name.toLowerCase(), def);
 	}
 	
-	public boolean hasOption(String name) {
-		return optionValues.containsKey(name);
+	public boolean hasArgument(String name) {
+		return optionValues.containsKey(name.toLowerCase());
 	}
 	
 //	public GuildChannel getOptionUser(String name) {
-//		return createGuildChannel(jda.getEntityBuilder(), (GuildImpl) guild, (DataObject) optionValues.get(name));
+//		return createGuildChannel(jda.getEntityBuilder(), (GuildImpl) guild, (DataObject) optionValues.get(name.toLowerCase()));
 //	}
 //	
 //    private void createGuildChannel(EntityBuilder eb, GuildImpl guildObj, DataObject channelData)
