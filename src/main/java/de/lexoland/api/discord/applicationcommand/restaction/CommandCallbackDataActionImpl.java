@@ -60,7 +60,7 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
     protected final Set<InputStream> ownedResources = new HashSet<>();
     protected final StringBuilder content;
     protected final MessageChannel channel;
-    protected MessageEmbed embed = null;
+    protected Set<MessageEmbed> embeds = new HashSet<>();
     protected String nonce = null;
     protected boolean tts = false, override = false;
     protected EnumSet<Message.MentionType> allowedMentions;
@@ -88,7 +88,7 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
     public boolean isEmpty()
     {
         return Helpers.isBlank(content)
-                && (embed == null || embed.isEmpty() || !hasPermission(Permission.MESSAGE_EMBED_LINKS));
+                && (embeds.isEmpty() || !hasPermission(Permission.MESSAGE_EMBED_LINKS));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
             return this;
         final List<MessageEmbed> embeds = message.getEmbeds();
         if (embeds != null && !embeds.isEmpty())
-            embed(embeds.get(0));
+            embeds(embeds.get(0));
         files.clear();
 
         String content = message.getContentRaw();
@@ -161,7 +161,8 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
     @CheckReturnValue
     public CommandCallbackDataActionImpl reset()
     {
-        return content(null).nonce(null).embed(null).tts(false).override(false);
+        embeds.clear();
+        return content(null).nonce(null).tts(false).override(false);
     }
 
     @Nonnull
@@ -190,15 +191,23 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
     @Nonnull
     @Override
     @CheckReturnValue
-    public CommandCallbackDataActionImpl embed(final MessageEmbed embed)
+    public CommandCallbackDataActionImpl embeds(final MessageEmbed... embeds)
     {
-        if (embed != null)
-        {
-            Checks.check(embed.isSendable(),
-                    "Provided Message contains an empty embed or an embed with a length greater than %d characters, which is the max for bot accounts!",
-                    MessageEmbed.EMBED_MAX_LENGTH_BOT);
+        for(MessageEmbed embed : embeds) {
+            if (embed != null)
+            {
+                Checks.check(embed.isSendable(),
+                        "Provided Message contains an empty embed or an embed with a length greater than %d characters, which is the max for bot accounts!",
+                        MessageEmbed.EMBED_MAX_LENGTH_BOT);
+            }
+            this.embeds.add(embed);
         }
-        this.embed = embed;
+        return this;
+    }
+
+    @Override
+    public CommandCallbackDataAction clearEmbeds() {
+        embeds.clear();
         return this;
     }
 
@@ -325,17 +334,14 @@ public class CommandCallbackDataActionImpl extends RestActionImpl<Void> implemen
         {
             final DataObject data = DataObject.empty();
             if (override) {
-                if (embed == null)
-                    data.putNull("embed");
-                else
-                    data.put("embed", embed);
+                data.put("embeds", DataArray.fromCollection(embeds));
                 if (content.length() == 0)
                     data.putNull("content");
                 else
                     data.put("content", content.toString());
             } else {
-                if (embed != null)
-                    data.put("embed", embed);
+                if (!embeds.isEmpty())
+                    data.put("embeds", DataArray.fromCollection(embeds));
                 if (content.length() > 0)
                     data.put("content", content.toString());
             }

@@ -142,7 +142,7 @@ public interface CommandCallbackDataAction extends RestAction<Void>, Appendable 
      * that should be used for this Message.
      * Refer to {@link net.dv8tion.jda.api.EmbedBuilder EmbedBuilder} for more information.
      *
-     * @param  embed
+     * @param  embeds
      *         The {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbed} that should
      *         be attached to this message, {@code null} to use no embed.
      *
@@ -155,7 +155,9 @@ public interface CommandCallbackDataAction extends RestAction<Void>, Appendable 
      */
     @Nonnull
     @CheckReturnValue
-    CommandCallbackDataAction embed(@Nullable final MessageEmbed embed);
+    CommandCallbackDataAction embeds(final MessageEmbed... embeds);
+
+    CommandCallbackDataAction clearEmbeds();
 
     /**
      * {@inheritDoc}
