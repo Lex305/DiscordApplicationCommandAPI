@@ -8,7 +8,6 @@ import java.util.Map;
 
 import de.lexoland.api.discord.applicationcommand.ApplicationCommand.ApplicationCommandChoice;
 import de.lexoland.api.discord.applicationcommand.ApplicationCommand.ApplicationCommandNode;
-import de.lexoland.api.discord.applicationcommand.handlers.InteractionCreateHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.Response;
@@ -32,12 +31,7 @@ public class ApplicationCommandAPI {
 	
 	public ApplicationCommandAPI(JDA jda) {
 		this.jda = (JDAImpl) jda;
-		setupHandlers();
-	}
-	
-	private void setupHandlers() {
-		Map<String, SocketHandler> handlers = jda.getClient().getHandlers();
-		handlers.put("INTERACTION_CREATE", new InteractionCreateHandler(jda, this));
+		jda.addEventListener(new CommandListener(this));
 	}
 	
 	public <T extends ApplicationCommand> RestAction<T> registerGuildCommand(Guild guild, T command) {

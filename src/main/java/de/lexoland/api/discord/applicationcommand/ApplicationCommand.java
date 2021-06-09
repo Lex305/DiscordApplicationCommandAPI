@@ -1,6 +1,7 @@
 package de.lexoland.api.discord.applicationcommand;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public abstract class ApplicationCommand {
 		protected int type;
 		protected boolean required;
 		protected ChoiceProvider choiceProvider = (choices1, g) -> {};
-		protected Consumer<Interaction> execute;
+		protected Consumer<SlashCommandEvent> execute;
 		protected List<ApplicationCommandNode> options = new ArrayList<>();
 		protected PermissionProvider permissionProvider = (permissions, g) -> {};
 		protected boolean defaultPermission = true;
@@ -101,7 +102,7 @@ public abstract class ApplicationCommand {
 			return description;
 		}
 		
-		public Consumer<Interaction> getExecute() {
+		public Consumer<SlashCommandEvent> getExecute() {
 			return execute;
 		}
 		
@@ -154,7 +155,7 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationRootCommandNode executes(Consumer<Interaction> execute) {
+		public ApplicationRootCommandNode executes(Consumer<SlashCommandEvent> execute) {
 			this.execute = execute;
 			return this;
 		}
@@ -201,7 +202,7 @@ public abstract class ApplicationCommand {
 			return this;
 		}
 
-		public ApplicationSubCommandNode executes(Consumer<Interaction> execute) {
+		public ApplicationSubCommandNode executes(Consumer<SlashCommandEvent> execute) {
 			this.execute = execute;
 			return this;
 		}
