@@ -117,6 +117,14 @@ public abstract class ApplicationCommand {
 		public int getType() {
 			return type;
 		}
+
+		public boolean getDefaultPermission() {
+			return defaultPermission;
+		}
+
+		public PermissionProvider getPermissionProvider() {
+			return permissionProvider;
+		}
 	}
 
 	public static class ApplicationRootCommandNode extends ApplicationCommandNode {
