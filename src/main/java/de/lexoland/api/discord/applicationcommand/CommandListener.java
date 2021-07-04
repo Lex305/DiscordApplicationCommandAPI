@@ -21,6 +21,10 @@ public class CommandListener extends ListenerAdapter {
             command = commandAPI.getGuildCommand(event.getGuild().getIdLong(), event.getCommandIdLong());
         else
             command = commandAPI.getGlobalCommand(event.getCommandIdLong());
+        if(command == null) {
+            event.reply("❌ We're sorry but this command is unavailable right now. Please try again later.").setEphemeral(true).queue();
+            return;
+        }
         String[] path = event.getCommandPath().split("/");
         ApplicationCommand.ApplicationCommandNode node = command.getNode();
         if(path.length == 1) {

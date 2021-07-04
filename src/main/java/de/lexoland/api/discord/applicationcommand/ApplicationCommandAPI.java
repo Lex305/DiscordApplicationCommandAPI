@@ -1,6 +1,8 @@
 package de.lexoland.api.discord.applicationcommand;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +60,41 @@ public class ApplicationCommandAPI {
 
 					command.updatePermissions(this, jda.getGuildById(guildId)).queue();
 					return command;
+				}
+		);
+	}
+
+	public RestAction<Collection<ApplicationCommand>> overwriteGuildCommands(long guildId, ApplicationCommand... commands) {
+		Guild guild = jda.getGuildById(guildId);
+		ApplicationCommand.ApplicationRootCommandNode[] nodes = new ApplicationCommand.ApplicationRootCommandNode[commands.length];
+		for(int i = 0; i < commands.length; i++) {
+			var node = new ApplicationCommand.ApplicationRootCommandNode(commands[i].getName());
+			commands[i].build(node, guild);
+			nodes[i] = node;
+		}
+		DataArray array = DataArray.empty();
+		for(ApplicationCommand.ApplicationRootCommandNode node : nodes) {
+			array.add(build(guild, node));
+		}
+		return new RestActionImpl<>(
+				jda,
+				Route.put("/applications/{}/guilds/{}/commands").compile(String.valueOf(jda.getSelfUser().getIdLong()), String.valueOf(guildId)),
+				RequestBody.create(MediaType.get("application/json"), array.toJson()),
+				(response, request) -> {
+					DataArray array1 = response.optArray().get();
+					for(int i = 0; i < array1.length(); i++) {
+						DataObject obj = array1.getObject(i);
+						commands[i].id = obj.getLong("id");
+						commands[i].applicationId = obj.getLong("application_id");
+						commands[i].node = nodes[i];
+
+						List<ApplicationCommand> commands2 = guildCommands.getOrDefault(guildId, new ArrayList<>());
+						commands2.add(commands[i]);
+						guildCommands.put(guildId, commands2);
+
+						allCommands.add(commands[i]);
+					}
+					return Arrays.asList(commands);
 				}
 		);
 	}
@@ -176,9 +213,10 @@ public class ApplicationCommandAPI {
 	}
 
 	public ApplicationCommand getGuildCommand(long guildId, long commandId) {
-		for(ApplicationCommand command : getGuildCommands(guildId))
-			if(command.id == commandId)
+		for(ApplicationCommand command : getGuildCommands(guildId)) {
+			if (command.id == commandId)
 				return command;
+		}
 		return null;
 	}
 
